@@ -13,9 +13,11 @@
 # ...and then visit any .onion address, and it'll get re-directed to
 # txtorcon documentation.
 
+import os
 import re
 import sys
 import itertools
+from copy import deepcopy
 from os.path import join, split
 
 import txtorcon
@@ -101,15 +103,17 @@ def spawn_name_service(reactor, name):
         raise Exception(
             "No such service '{}'".format(name)
         )
+    spawn_env = deepcopy(os.environ)
+    spawn_env.update({
+        'TOR_NS_STATE_LOCATION': '/var/lib/tor/ns_state',
+        'TOR_NS_PROTO_VERSION': '1',
+        'TOR_NS_PLUGIN_OPTIONS': '',
+    })
     process = yield reactor.spawnProcess(
         proto,
         args[0],
         args,
-        env={
-            'TOR_NS_STATE_LOCATION': '/var/lib/tor/ns_state',
-            'TOR_NS_PROTO_VERSION': '1',
-            'TOR_NS_PLUGIN_OPTIONS': '',
-        },
+        env=spawn_env,
 #        path='/tmp',
     )
     defer.returnValue(proto)
